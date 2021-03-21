@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useRef } from "react"
 import {View, Text, FlatList, Dimensions, StyleSheet, LogBox, Animated, TouchableOpacity} from "react-native"
 
 const screenWidth = Dimensions.get("window").width
@@ -22,13 +22,13 @@ const Indicator = ({scrollX}) => {
           const dotWidth = scrollX.interpolate({
             inputRange : inputRange,
             outputRange : [0.025*screenWidth, 0.05*screenWidth, 0.025*screenWidth],
-            extrpolate : 'clamp'
+            extrapolate : 'clamp'
           })
 
           const opacity = scrollX.interpolate({
             inputRange : inputRange,
             outputRange : [0.4, 1, 0.4],
-            extrpolate : 'clamp'
+            extrapolate : 'clamp'
           })
 
 
@@ -51,19 +51,50 @@ const Indicator = ({scrollX}) => {
   )
 }
 
+const NextButton = ({scrollTo}) => {
+  return(
+    <View style={{width : screenWidth , alignItems : "center", justifyContent : "center"}} >
+        <TouchableOpacity onPress={scrollTo} style={styles.Button} >
+
+        </TouchableOpacity>
+    </View>
+  )
+}
+
 function App() {
 
     const scrollX = React.useRef(new Animated.Value(0)).current
 
-    const [slide, setSlide] = React.useState(1)
+    const [slide, setSlide] = React.useState(0)
+
+    const [currentIndex, setCurrentIndex] = React.useState(0)
+    const slidesRef = useRef(null)
+
+    const scrollTo = () => {
+        if(currentIndex < data.length - 1){
+            slidesRef.current.scrollToIndex({index : currentIndex + 1})
+        } else {
+          alert("Last Item")
+        }
+    }
+
+    const viewConfig = React.useRef({viewAreaCoveragePrecentThreshold : 50}).current
+
+    const viewableItemsChanged = React.useRef(({viewableItems}) => {
+        setCurrentIndex(viewableItems[0].index)
+    }).current
+
 
   return(
     <View style={styles.Root} >
     <Animated.FlatList
+      onViewableItemsChanged={viewableItemsChanged}
       horizontal
       scrollEventThrottle={32}
       data={data}
       showsHorizontalScrollIndicator={false}
+      bounces={false}
+      keyExtractor={(item) => item.id}
       onScroll={
         Animated.event(
           [{
@@ -72,7 +103,9 @@ function App() {
           {useNativeDriver : false}
         )
       }
+      ref={slidesRef}
       pagingEnabled
+      viewabilityConfig={viewConfig}
       renderItem={({item, index}) => {
 
         const s = screenWidth*0.95
@@ -89,8 +122,6 @@ function App() {
             inputRange : inputRange,
             outputRange : [s , 0, -s]
           })
-          
-
         return(
           <View style={{width : screenWidth, alignItems : "center", justifyContent : "center", height : 0.85*screenHeight}} >
             <View style={styles.Image} >
@@ -126,6 +157,7 @@ function App() {
     }} ></View>
     <Indicator scrollX={scrollX} />
 
+    <NextButton scrollTo={scrollTo} />
    
 </View>
   )
@@ -135,16 +167,19 @@ export default App
 
 const data = [
   {
+    id : 1,
     title : "Best Teachers",
     des1 : "In India",
     description : "Engaging videos that make learing \n simple and fun"
   },
   {
+    id : 2,
     title : "Personalised",
     des1 : "Learning",
     description : "Unique learning journeys \n created just for you"
   },
   {
+    id : 3,
     title : "Detailed",
     des1 : "Insights",
     description : "Customized feedback with \n recommendations at every step"
