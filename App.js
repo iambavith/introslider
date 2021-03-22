@@ -73,14 +73,15 @@ function App() {
     const scrollTo = () => {
         if(currentIndex < data.length - 1){
             slidesRef.current.scrollToIndex({index : currentIndex + 1})
+            console.log(currentIndex)
         } else {
           alert("Last Item")
         }
     }
 
-    const viewConfig = React.useRef({viewAreaCoveragePrecentThreshold : 50}).current
+    const viewConfig = React.useRef({waitForInteraction: true,viewAreaCoveragePercentThreshold : 100}).current
 
-    const viewableItemsChanged = React.useRef(({viewableItems}) => {
+    const viewableItemsChanged = useRef(({viewableItems}) => {
         setCurrentIndex(viewableItems[0].index)
     }).current
 
@@ -88,7 +89,6 @@ function App() {
   return(
     <View style={styles.Root} >
     <Animated.FlatList
-      onViewableItemsChanged={viewableItemsChanged}
       horizontal
       scrollEventThrottle={32}
       data={data}
@@ -106,6 +106,7 @@ function App() {
       ref={slidesRef}
       pagingEnabled
       viewabilityConfig={viewConfig}
+      onViewableItemsChanged={viewableItemsChanged}
       renderItem={({item, index}) => {
 
         const s = screenWidth*0.95
